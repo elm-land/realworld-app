@@ -1,7 +1,9 @@
+# 1️⃣ Tells Netlify how to build your app, and where the files are
 [build]
-  publish = "public"
-  command = "npm i elm-spa@beta elm@latest-0.19.1 && npx elm-spa build"
+  command = "npx elm-land build"
+  publish = "dist"
 
+# 2️⃣ Handles SPA redirects so all your pages work
 [[redirects]]
   from = "/*"
   to = "/index.html"
