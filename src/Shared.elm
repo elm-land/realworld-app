@@ -1,22 +1,23 @@
 module Shared exposing
     ( Flags
     , Model
-    , Msg(..)
+    , Msg
+    , decoder
     , init
     , subscriptions
     , update
-    , view
     )
 
 import Api.User exposing (User)
 import Components.Footer
 import Components.Navbar
+import Effect exposing (Effect)
 import Html exposing (..)
 import Html.Attributes exposing (class)
-import Json.Decode as Json
-import Ports
-import Request exposing (Request)
-import Utils.Route
+import Json.Decode
+import Route exposing (Route)
+import Shared.Model
+import Shared.Msg
 import View exposing (View)
 
 
@@ -25,24 +26,32 @@ import View exposing (View)
 
 
 type alias Flags =
-    Json.Value
-
-
-type alias Model =
     { user : Maybe User
     }
 
 
-init : Request -> Flags -> ( Model, Cmd Msg )
-init _ json =
+decoder : Json.Decode.Decoder Flags
+decoder =
+    Json.Decode.map Flags
+        (Json.Decode.maybe (Json.Decode.field "user" Api.User.decoder))
+
+
+type alias Model =
+    Shared.Model.Model
+
+
+init : Result Json.Decode.Error Flags -> Route () -> ( Model, Effect Msg )
+init result _ =
     let
-        user =
-            json
-                |> Json.decodeValue (Json.field "user" Api.User.decoder)
-                |> Result.toMaybe
+        flags =
+            result
+                |> Result.withDefault
+                    { user = Nothing
+                    }
     in
-    ( Model user
-    , Cmd.none
+    ( { user = flags.user
+      }
+    , Effect.none
     )
 
 
@@ -50,55 +59,28 @@ init _ json =
 -- UPDATE
 
 
-type Msg
-    = ClickedSignOut
-    | SignedInUser User
+type alias Msg =
+    Shared.Msg.Msg
 
 
-update : Request -> Msg -> Model -> ( Model, Cmd Msg )
+update : Route () -> Msg -> Model -> ( Model, Effect Msg )
 update _ msg model =
     case msg of
-        SignedInUser user ->
+        Shared.Msg.SignedInUser user ->
             ( { model | user = Just user }
-            , Ports.saveUser user
+            , Effect.saveUser user
             )
 
-        ClickedSignOut ->
+        Shared.Msg.ClickedSignOut ->
             ( { model | user = Nothing }
-            , Ports.clearUser
+            , Effect.clearUser
             )
 
 
-subscriptions : Request -> Model -> Sub Msg
+subscriptions : Route () -> Model -> Sub Msg
 subscriptions _ _ =
     Sub.none
 
 
 
 -- VIEW
-
-
-view :
-    Request
-    -> { page : View msg, toMsg : Msg -> msg }
-    -> Model
-    -> View msg
-view req { page, toMsg } model =
-    { title =
-        if String.isEmpty page.title then
-            "Conduit"
-
-        else
-            page.title ++ " | Conduit"
-    , body =
-        [ div [ class "layout" ]
-            [ Components.Navbar.view
-                { user = model.user
-                , currentRoute = Utils.Route.fromUrl req.url
-                , onSignOut = toMsg ClickedSignOut
-                }
-            , div [ class "page" ] page.body
-            , Components.Footer.view
-            ]
-        ]
-    }
