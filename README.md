@@ -2,7 +2,6 @@
 
 > ### An __elm-spa__ codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.
 
-![elm-test](https://github.com/ryannhg/elm-spa-realworld/workflows/elm-test/badge.svg?branch=master)
 
 ### [Demo](https://realworld.elm-spa.dev/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
 
@@ -16,7 +15,7 @@ For more information on how to this works with other frontends/backends, head ov
 
 # How it works
 
-> This application was built with [elm-spa](https://elm-spa.dev), a friendly tool for building SPAs with Elm!
+> This application was built with [Elm Land](https://elm.land), A production-ready framework for building Elm applications.
 
 Check out the [the source code](./src) to get a feel for the project structure!
 
@@ -26,7 +25,6 @@ src/
   Components/...
   Pages/...
   Utils/...
-  Main.elm
   Shared.elm
   Ports.elm
 ```
@@ -34,5 +32,6 @@ src/
 # Getting started
 
 ```
-elm-spa server
+npm install -g elm-land@latest
+elm-land server
 ```
