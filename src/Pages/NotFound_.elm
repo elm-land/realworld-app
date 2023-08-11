@@ -3,6 +3,7 @@ module Pages.NotFound_ exposing (Model, Msg, page)
 import Components.NotFound
 import Effect exposing (Effect)
 import Html exposing (..)
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Route.Path
@@ -18,6 +19,7 @@ page shared route =
         , subscriptions = subscriptions
         , view = view
         }
+        |> Page.withLayout (\_ -> Layouts.Default {})
 
 
 

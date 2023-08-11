@@ -6,9 +6,11 @@ import Api.Article.Tag exposing (Tag)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Components.ArticleList
+import Effect exposing (Effect)
 import Html exposing (..)
 import Html.Attributes exposing (class, classList)
 import Html.Events as Events
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
@@ -18,12 +20,13 @@ import View exposing (View)
 
 page : Shared.Model -> Route () -> Page Model Msg
 page shared _ =
-    Page.element
+    Page.new
         { init = init shared
         , update = update shared
         , subscriptions = subscriptions
         , view = view shared
         }
+        |> Page.withLayout (\_ -> Layouts.Default {})
 
 
 
@@ -44,8 +47,8 @@ type Tab
     | TagFilter Tag
 
 
-init : Shared.Model -> ( Model, Cmd Msg )
-init shared =
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init shared _ =
     let
         activeTab : Tab
         activeTab =
@@ -62,9 +65,10 @@ init shared =
             }
     in
     ( model
-    , Cmd.batch
+    , Effect.batch
         [ fetchArticlesForTab shared model
         , Api.Article.Tag.list { onResponse = GotTags }
+            |> Effect.sendCmd
         ]
     )
 
@@ -76,7 +80,7 @@ fetchArticlesForTab :
             | page : Int
             , activeTab : Tab
         }
-    -> Cmd Msg
+    -> Effect Msg
 fetchArticlesForTab shared model =
     case model.activeTab of
         Global ->
@@ -86,6 +90,7 @@ fetchArticlesForTab shared model =
                 , token = Maybe.map .token shared.user
                 , onResponse = GotArticles
                 }
+                |> Effect.sendCmd
 
         FeedFor user ->
             Api.Article.feed
@@ -93,6 +98,7 @@ fetchArticlesForTab shared model =
                 , page = model.page
                 , onResponse = GotArticles
                 }
+                |> Effect.sendCmd
 
         TagFilter tag ->
             Api.Article.list
@@ -103,6 +109,7 @@ fetchArticlesForTab shared model =
                 , token = Maybe.map .token shared.user
                 , onResponse = GotArticles
                 }
+                |> Effect.sendCmd
 
 
 
@@ -119,17 +126,17 @@ type Msg
     | UpdatedArticle (Data Article)
 
 
-update : Shared.Model -> Msg -> Model -> ( Model, Cmd Msg )
+update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
     case msg of
         GotArticles listing ->
             ( { model | listing = listing }
-            , Cmd.none
+            , Effect.none
             )
 
         GotTags tags ->
             ( { model | tags = tags }
-            , Cmd.none
+            , Effect.none
             )
 
         SelectedTab tab ->
@@ -153,6 +160,7 @@ update shared msg model =
                 , slug = article.slug
                 , onResponse = UpdatedArticle
                 }
+                |> Effect.sendCmd
             )
 
         ClickedUnfavorite user article ->
@@ -162,6 +170,7 @@ update shared msg model =
                 , slug = article.slug
                 , onResponse = UpdatedArticle
                 }
+                |> Effect.sendCmd
             )
 
         ClickedPage page_ ->
@@ -183,11 +192,11 @@ update shared msg model =
                     Api.Data.map (Api.Article.updateArticle article)
                         model.listing
               }
-            , Cmd.none
+            , Effect.none
             )
 
         UpdatedArticle _ ->
-            ( model, Cmd.none )
+            ( model, Effect.none )
 
 
 subscriptions : Model -> Sub Msg

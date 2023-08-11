@@ -9,9 +9,11 @@ import Api.User exposing (User)
 import Components.ArticleList
 import Components.IconButton as IconButton
 import Components.NotFound
+import Effect exposing (Effect)
 import Html exposing (..)
 import Html.Attributes exposing (class, classList, src)
 import Html.Events as Events
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
@@ -21,12 +23,13 @@ import View exposing (View)
 
 page : Shared.Model -> Route { username : String } -> Page Model Msg
 page shared req =
-    Page.element
+    Page.new
         { init = init shared req
         , update = update shared
         , subscriptions = subscriptions
         , view = view shared
         }
+        |> Page.withLayout (\_ -> Layouts.Default {})
 
 
 
@@ -47,8 +50,8 @@ type Tab
     | FavoritedArticles
 
 
-init : Shared.Model -> Route { username : String } -> ( Model, Cmd Msg )
-init shared { params } =
+init : Shared.Model -> Route { username : String } -> () -> ( Model, Effect Msg )
+init shared { params } _ =
     let
         token : Maybe Token
         token =
@@ -60,18 +63,19 @@ init shared { params } =
       , selectedTab = MyArticles
       , page = 1
       }
-    , Cmd.batch
+    , Effect.batch
         [ Api.Profile.get
             { token = token
             , username = params.username
             , onResponse = GotProfile
             }
+            |> Effect.sendCmd
         , fetchArticlesBy token params.username 1
         ]
     )
 
 
-fetchArticlesBy : Maybe Token -> String -> Int -> Cmd Msg
+fetchArticlesBy : Maybe Token -> String -> Int -> Effect Msg
 fetchArticlesBy token username page_ =
     Api.Article.list
         { token = token
@@ -79,9 +83,10 @@ fetchArticlesBy token username page_ =
         , filters = Filters.create |> Filters.byAuthor username
         , onResponse = GotArticles
         }
+        |> Effect.sendCmd
 
 
-fetchArticlesFavoritedBy : Maybe Token -> String -> Int -> Cmd Msg
+fetchArticlesFavoritedBy : Maybe Token -> String -> Int -> Effect Msg
 fetchArticlesFavoritedBy token username page_ =
     Api.Article.list
         { token = token
@@ -90,6 +95,7 @@ fetchArticlesFavoritedBy token username page_ =
             Filters.create |> Filters.favoritedBy username
         , onResponse = GotArticles
         }
+        |> Effect.sendCmd
 
 
 
@@ -108,12 +114,12 @@ type Msg
     | ClickedPage Int
 
 
-update : Shared.Model -> Msg -> Model -> ( Model, Cmd Msg )
+update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
     case msg of
         GotProfile profile ->
             ( { model | profile = profile }
-            , Cmd.none
+            , Effect.none
             )
 
         ClickedFollow user profile ->
@@ -123,6 +129,7 @@ update shared msg model =
                 , username = profile.username
                 , onResponse = GotProfile
                 }
+                |> Effect.sendCmd
             )
 
         ClickedUnfollow user profile ->
@@ -132,11 +139,12 @@ update shared msg model =
                 , username = profile.username
                 , onResponse = GotProfile
                 }
+                |> Effect.sendCmd
             )
 
         GotArticles listing ->
             ( { model | listing = listing }
-            , Cmd.none
+            , Effect.none
             )
 
         Clicked MyArticles ->
@@ -164,6 +172,7 @@ update shared msg model =
                 , slug = article.slug
                 , onResponse = UpdatedArticle
                 }
+                |> Effect.sendCmd
             )
 
         ClickedUnfavorite user article ->
@@ -173,11 +182,12 @@ update shared msg model =
                 , slug = article.slug
                 , onResponse = UpdatedArticle
                 }
+                |> Effect.sendCmd
             )
 
         ClickedPage page_ ->
             let
-                fetch : Maybe Token -> String -> Int -> Cmd Msg
+                fetch : Maybe Token -> String -> Int -> Effect Msg
                 fetch =
                     case model.selectedTab of
                         MyArticles ->
@@ -202,11 +212,11 @@ update shared msg model =
                     Api.Data.map (Api.Article.updateArticle article)
                         model.listing
               }
-            , Cmd.none
+            , Effect.none
             )
 
         UpdatedArticle _ ->
-            ( model, Cmd.none )
+            ( model, Effect.none )
 
 
 subscriptions : Model -> Sub Msg

@@ -2,29 +2,29 @@ module Pages.Settings exposing (Model, Msg, page)
 
 import Api.Data exposing (Data)
 import Api.User exposing (User)
+import Auth
 import Components.ErrorList
 import Effect exposing (Effect)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Events as Events
+import Layouts
 import Page exposing (Page)
-import Ports
 import Route exposing (Route)
 import Shared
 import Utils.Maybe
 import View exposing (View)
 
 
-page : Shared.Model -> Route () -> Page Model Msg
-page shared _ =
-    Page.protected.advanced
-        (\user ->
-            { init = init shared
-            , update = update
-            , subscriptions = subscriptions
-            , view = view user
-            }
-        )
+page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
+page user shared _ =
+    Page.new
+        { init = init shared
+        , update = update
+        , subscriptions = subscriptions
+        , view = view user
+        }
+        |> Page.withLayout (\_ -> Layouts.Default {})
 
 
 
@@ -42,8 +42,8 @@ type alias Model =
     }
 
 
-init : Shared.Model -> ( Model, Effect Msg )
-init shared =
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init shared _ =
     ( case shared.user of
         Just user ->
             { image = user.image
@@ -106,7 +106,7 @@ update msg model =
 
         SubmittedForm user ->
             ( { model | message = Nothing, errors = [] }
-            , Effect.fromCmd <|
+            , Effect.sendCmd <|
                 Api.User.update
                     { token = user.token
                     , user = model
@@ -117,8 +117,8 @@ update msg model =
         GotUser (Api.Data.Success user) ->
             ( { model | message = Just "User updated!" }
             , Effect.batch
-                [ Effect.fromCmd (Ports.saveUser user)
-                , Effect.fromShared (Shared.SignedInUser user)
+                [ Effect.saveUser user
+                , Effect.signIn user
                 ]
             )
 

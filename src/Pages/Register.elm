@@ -3,24 +3,26 @@ module Pages.Register exposing (Model, Msg, page)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Components.UserForm
+import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Gen.Route as Route
 import Html exposing (..)
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
+import Route.Path
 import Shared
-import Utils.Route
 import View exposing (View)
 
 
 page : Shared.Model -> Route () -> Page Model Msg
 page shared req =
-    Page.advanced
+    Page.new
         { init = init shared
         , update = update req
         , subscriptions = subscriptions
         , view = view
         }
+        |> Page.withLayout (\_ -> Layouts.Default {})
 
 
 
@@ -35,8 +37,8 @@ type alias Model =
     }
 
 
-init : Shared.Model -> ( Model, Effect Msg )
-init shared =
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init shared _ =
     ( Model
         (case shared.user of
             Just user ->
@@ -88,15 +90,15 @@ update req msg model =
 
         AttemptedSignUp ->
             ( model
-            , Effect.fromCmd <|
-                Api.User.registration
-                    { user =
-                        { username = model.username
-                        , email = model.email
-                        , password = model.password
-                        }
-                    , onResponse = GotUser
+            , Api.User.registration
+                { user =
+                    { username = model.username
+                    , email = model.email
+                    , password = model.password
                     }
+                , onResponse = GotUser
+                }
+                |> Effect.sendCmd
             )
 
         GotUser user ->
@@ -104,8 +106,12 @@ update req msg model =
                 Just user_ ->
                     ( { model | user = user }
                     , Effect.batch
-                        [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
-                        , Effect.fromShared (Shared.SignedInUser user_)
+                        [ Effect.pushRoute
+                            { path = Route.Path.Home_
+                            , query = Dict.empty
+                            , hash = Nothing
+                            }
+                        , Effect.signIn user_
                         ]
                     )
 
@@ -132,7 +138,10 @@ view model =
             { user = model.user
             , label = "Sign up"
             , onFormSubmit = AttemptedSignUp
-            , alternateLink = { label = "Have an account?", route = Route.Login }
+            , alternateLink =
+                { label = "Have an account?"
+                , route = Route.Path.Login
+                }
             , fields =
                 [ { label = "Your Name"
                   , type_ = "text"

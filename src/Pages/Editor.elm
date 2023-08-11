@@ -3,25 +3,28 @@ module Pages.Editor exposing (Model, Msg, page)
 import Api.Article exposing (Article)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
+import Auth
 import Components.Editor exposing (Field, Form)
-import Gen.Route as Route
+import Dict exposing (Dict)
+import Effect exposing (Effect)
 import Html exposing (..)
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
+import Route.Path
 import Shared
-import Utils.Route
 import View exposing (View)
 
 
-page : Shared.Model -> Route () -> Page Model Msg
-page shared req =
-    Page.protected.element <|
-        \user ->
-            { init = init shared
-            , update = update req
-            , subscriptions = subscriptions
-            , view = view user
-            }
+page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
+page user shared route =
+    Page.new
+        { init = init shared
+        , update = update route
+        , subscriptions = subscriptions
+        , view = view user
+        }
+        |> Page.withLayout (\_ -> Layouts.Default {})
 
 
 
@@ -34,8 +37,8 @@ type alias Model =
     }
 
 
-init : Shared.Model -> ( Model, Cmd Msg )
-init shared =
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init shared _ =
     ( { form =
             { title = ""
             , description = ""
@@ -44,7 +47,7 @@ init shared =
             }
       , article = Api.Data.NotAsked
       }
-    , Cmd.none
+    , Effect.none
     )
 
 
@@ -58,8 +61,8 @@ type Msg
     | GotArticle (Data Article)
 
 
-update : Route () -> Msg -> Model -> ( Model, Cmd Msg )
-update req msg model =
+update : Route () -> Msg -> Model -> ( Model, Effect Msg )
+update route msg model =
     case msg of
         Updated field value ->
             ( { model
@@ -69,7 +72,7 @@ update req msg model =
                         value
                         model.form
               }
-            , Cmd.none
+            , Effect.none
             )
 
         SubmittedForm user ->
@@ -87,17 +90,21 @@ update req msg model =
                     }
                 , onResponse = GotArticle
                 }
+                |> Effect.sendCmd
             )
 
         GotArticle article ->
             ( { model | article = article }
             , case article of
                 Api.Data.Success newArticle ->
-                    Utils.Route.navigate req.key
-                        (Route.Article__Slug_ { slug = newArticle.slug })
+                    Effect.pushRoute
+                        { path = Route.Path.Article_Slug_ { slug = newArticle.slug }
+                        , query = Dict.empty
+                        , hash = Nothing
+                        }
 
                 _ ->
-                    Cmd.none
+                    Effect.none
             )
 
 

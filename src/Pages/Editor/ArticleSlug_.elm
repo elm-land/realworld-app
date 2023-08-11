@@ -3,25 +3,28 @@ module Pages.Editor.ArticleSlug_ exposing (Model, Msg, page)
 import Api.Article exposing (Article)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
+import Auth
 import Components.Editor exposing (Field, Form)
-import Gen.Route as Route
+import Dict exposing (Dict)
+import Effect exposing (Effect)
 import Html exposing (..)
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
+import Route.Path
 import Shared
-import Utils.Route
 import View exposing (View)
 
 
-page : Shared.Model -> Route { articleSlug : String } -> Page Model Msg
-page shared req =
-    Page.protected.element <|
-        \user ->
-            { init = init shared req
-            , update = update req
-            , subscriptions = subscriptions
-            , view = view user
-            }
+page : Auth.User -> Shared.Model -> Route { articleSlug : String } -> Page Model Msg
+page user shared route =
+    Page.new
+        { init = init shared route
+        , update = update route
+        , subscriptions = subscriptions
+        , view = view user
+        }
+        |> Page.withLayout (\_ -> Layouts.Default {})
 
 
 
@@ -35,8 +38,8 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { articleSlug : String } -> ( Model, Cmd Msg )
-init shared { params } =
+init : Shared.Model -> Route { articleSlug : String } -> () -> ( Model, Effect Msg )
+init shared { params } _ =
     ( { slug = params.articleSlug
       , form = Nothing
       , article = Api.Data.Loading
@@ -46,6 +49,7 @@ init shared { params } =
         , slug = params.articleSlug
         , onResponse = LoadedInitialArticle
         }
+        |> Effect.sendCmd
     )
 
 
@@ -60,8 +64,8 @@ type Msg
     | LoadedInitialArticle (Data Article)
 
 
-update : Route { articleSlug : String } -> Msg -> Model -> ( Model, Cmd Msg )
-update req msg model =
+update : Route { articleSlug : String } -> Msg -> Model -> ( Model, Effect Msg )
+update route msg model =
     case msg of
         LoadedInitialArticle article ->
             case article of
@@ -75,11 +79,11 @@ update req msg model =
                                 , tags = String.join ", " a.tags
                                 }
                       }
-                    , Cmd.none
+                    , Effect.none
                     )
 
                 _ ->
-                    ( model, Cmd.none )
+                    ( model, Effect.none )
 
         Updated field value ->
             ( { model
@@ -88,7 +92,7 @@ update req msg model =
                         (Components.Editor.updateField field value)
                         model.form
               }
-            , Cmd.none
+            , Effect.none
             )
 
         SubmittedForm user form ->
@@ -107,17 +111,21 @@ update req msg model =
                     }
                 , onResponse = UpdatedArticle
                 }
+                |> Effect.sendCmd
             )
 
         UpdatedArticle article ->
             ( { model | article = article }
             , case article of
                 Api.Data.Success newArticle ->
-                    Utils.Route.navigate req.key
-                        (Route.Article__Slug_ { slug = newArticle.slug })
+                    Effect.pushRoute
+                        { path = Route.Path.Article_Slug_ { slug = newArticle.slug }
+                        , query = Dict.empty
+                        , hash = Nothing
+                        }
 
                 _ ->
-                    Cmd.none
+                    Effect.none
             )
 
 

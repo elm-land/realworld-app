@@ -6,28 +6,31 @@ import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
 import Api.User exposing (User)
 import Components.IconButton as IconButton
-import Gen.Route as Route
+import Dict exposing (Dict)
+import Effect exposing (Effect)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, href, placeholder, src, value)
 import Html.Events as Events
+import Layouts
 import Markdown
 import Page exposing (Page)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Utils.Maybe
-import Utils.Route
 import Utils.Time
 import View exposing (View)
 
 
 page : Shared.Model -> Route { slug : String } -> Page Model Msg
-page shared req =
-    Page.element
-        { init = init shared req
-        , update = update req
+page shared route =
+    Page.new
+        { init = init shared route
+        , update = update
         , subscriptions = subscriptions
         , view = view shared
         }
+        |> Page.withLayout (\_ -> Layouts.Default {})
 
 
 
@@ -41,23 +44,25 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { slug : String } -> ( Model, Cmd Msg )
-init shared { params } =
+init : Shared.Model -> Route { slug : String } -> () -> ( Model, Effect Msg )
+init shared { params } _ =
     ( { article = Api.Data.Loading
       , comments = Api.Data.Loading
       , commentText = ""
       }
-    , Cmd.batch
+    , Effect.batch
         [ Api.Article.get
             { slug = params.slug
             , token = shared.user |> Maybe.map .token
             , onResponse = GotArticle
             }
+            |> Effect.sendCmd
         , Api.Article.Comment.get
             { token = shared.user |> Maybe.map .token
             , articleSlug = params.slug
             , onResponse = GotComments
             }
+            |> Effect.sendCmd
         ]
     )
 
@@ -83,12 +88,12 @@ type Msg
     | UpdatedCommentText String
 
 
-update : Route { slug : String } -> Msg -> Model -> ( Model, Cmd Msg )
-update req msg model =
+update : Msg -> Model -> ( Model, Effect Msg )
+update msg model =
     case msg of
         GotArticle article ->
             ( { model | article = article }
-            , Cmd.none
+            , Effect.none
             )
 
         ClickedFavorite user article ->
@@ -98,6 +103,7 @@ update req msg model =
                 , slug = article.slug
                 , onResponse = GotArticle
                 }
+                |> Effect.sendCmd
             )
 
         ClickedUnfavorite user article ->
@@ -107,6 +113,7 @@ update req msg model =
                 , slug = article.slug
                 , onResponse = GotArticle
                 }
+                |> Effect.sendCmd
             )
 
         ClickedDeleteArticle user article ->
@@ -116,11 +123,16 @@ update req msg model =
                 , slug = article.slug
                 , onResponse = DeletedArticle
                 }
+                |> Effect.sendCmd
             )
 
         DeletedArticle _ ->
             ( model
-            , Utils.Route.navigate req.key Route.Home_
+            , Effect.pushRoute
+                { path = Route.Path.Home_
+                , query = Dict.empty
+                , hash = Nothing
+                }
             )
 
         GotAuthor profile ->
@@ -135,7 +147,7 @@ update req msg model =
                             article
             in
             ( { model | article = Api.Data.map updateAuthor model.article }
-            , Cmd.none
+            , Effect.none
             )
 
         ClickedFollow user profile ->
@@ -145,6 +157,7 @@ update req msg model =
                 , username = profile.username
                 , onResponse = GotAuthor
                 }
+                |> Effect.sendCmd
             )
 
         ClickedUnfollow user profile ->
@@ -154,21 +167,22 @@ update req msg model =
                 , username = profile.username
                 , onResponse = GotAuthor
                 }
+                |> Effect.sendCmd
             )
 
         GotComments comments ->
             ( { model | comments = comments }
-            , Cmd.none
+            , Effect.none
             )
 
         UpdatedCommentText text ->
             ( { model | commentText = text }
-            , Cmd.none
+            , Effect.none
             )
 
         SubmittedCommentForm user article ->
             if String.isEmpty model.commentText then
-                ( model, Cmd.none )
+                ( model, Effect.none )
 
             else
                 ( { model | commentText = "" }
@@ -178,6 +192,7 @@ update req msg model =
                     , comment = { body = model.commentText }
                     , onResponse = CreatedComment
                     }
+                    |> Effect.sendCmd
                 )
 
         CreatedComment comment ->
@@ -187,7 +202,7 @@ update req msg model =
 
                 _ ->
                     model
-            , Cmd.none
+            , Effect.none
             )
 
         ClickedDeleteComment user article comment ->
@@ -198,6 +213,7 @@ update req msg model =
                 , commentId = comment.id
                 , onResponse = DeletedComment
                 }
+                |> Effect.sendCmd
             )
 
         DeletedComment id ->
@@ -207,7 +223,7 @@ update req msg model =
                     List.filter (\comment -> Api.Data.Success comment.id /= id)
             in
             ( { model | comments = Api.Data.map removeComment model.comments }
-            , Cmd.none
+            , Effect.none
             )
 
 
