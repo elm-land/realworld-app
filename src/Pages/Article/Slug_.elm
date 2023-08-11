@@ -6,14 +6,13 @@ import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
 import Api.User exposing (User)
 import Components.IconButton as IconButton
-import Gen.Params.Article.Slug_ exposing (Params)
 import Gen.Route as Route
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, href, placeholder, src, value)
 import Html.Events as Events
 import Markdown
 import Page exposing (Page)
-import Request exposing (Request)
+import Route exposing (Route)
 import Shared
 import Utils.Maybe
 import Utils.Route
@@ -21,7 +20,7 @@ import Utils.Time
 import View exposing (View)
 
 
-page : Shared.Model -> Request.With Params -> Page.With Model Msg
+page : Shared.Model -> Route { slug : String } -> Page Model Msg
 page shared req =
     Page.element
         { init = init shared req
@@ -42,7 +41,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Request.With Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Route { slug : String } -> ( Model, Cmd Msg )
 init shared { params } =
     ( { article = Api.Data.Loading
       , comments = Api.Data.Loading
@@ -84,7 +83,7 @@ type Msg
     | UpdatedCommentText String
 
 
-update : Request.With Params -> Msg -> Model -> ( Model, Cmd Msg )
+update : Route { slug : String } -> Msg -> Model -> ( Model, Cmd Msg )
 update req msg model =
     case msg of
         GotArticle article ->

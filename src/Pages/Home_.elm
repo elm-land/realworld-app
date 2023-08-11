@@ -10,13 +10,13 @@ import Html exposing (..)
 import Html.Attributes exposing (class, classList)
 import Html.Events as Events
 import Page exposing (Page)
-import Request exposing (Request)
+import Route exposing (Route)
 import Shared
 import Utils.Maybe
 import View exposing (View)
 
 
-page : Shared.Model -> Request -> Page.With Model Msg
+page : Shared.Model -> Route () -> Page Model Msg
 page shared _ =
     Page.element
         { init = init shared

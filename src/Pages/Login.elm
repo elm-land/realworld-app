@@ -7,13 +7,13 @@ import Effect exposing (Effect)
 import Gen.Route as Route
 import Html exposing (..)
 import Page exposing (Page)
-import Request exposing (Request)
+import Route exposing (Route)
 import Shared
 import Utils.Route
 import View exposing (View)
 
 
-page : Shared.Model -> Request -> Page.With Model Msg
+page : Shared.Model -> Route () -> Page Model Msg
 page shared req =
     Page.advanced
         { init = init shared
@@ -65,7 +65,7 @@ type Field
     | Password
 
 
-update : Request -> Msg -> Model -> ( Model, Effect Msg )
+update : Route () -> Msg -> Model -> ( Model, Effect Msg )
 update req msg model =
     case msg of
         Updated Email email ->

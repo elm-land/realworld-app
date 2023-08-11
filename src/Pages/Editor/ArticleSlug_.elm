@@ -4,17 +4,16 @@ import Api.Article exposing (Article)
 import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Components.Editor exposing (Field, Form)
-import Gen.Params.Editor.ArticleSlug_ exposing (Params)
 import Gen.Route as Route
 import Html exposing (..)
 import Page exposing (Page)
-import Request exposing (Request)
+import Route exposing (Route)
 import Shared
 import Utils.Route
 import View exposing (View)
 
 
-page : Shared.Model -> Request.With Params -> Page.With Model Msg
+page : Shared.Model -> Route { articleSlug : String } -> Page Model Msg
 page shared req =
     Page.protected.element <|
         \user ->
@@ -36,7 +35,7 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Request.With Params -> ( Model, Cmd Msg )
+init : Shared.Model -> Route { articleSlug : String } -> ( Model, Cmd Msg )
 init shared { params } =
     ( { slug = params.articleSlug
       , form = Nothing
@@ -61,7 +60,7 @@ type Msg
     | LoadedInitialArticle (Data Article)
 
 
-update : Request.With Params -> Msg -> Model -> ( Model, Cmd Msg )
+update : Route { articleSlug : String } -> Msg -> Model -> ( Model, Cmd Msg )
 update req msg model =
     case msg of
         LoadedInitialArticle article ->

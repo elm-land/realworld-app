@@ -7,13 +7,13 @@ import Components.Editor exposing (Field, Form)
 import Gen.Route as Route
 import Html exposing (..)
 import Page exposing (Page)
-import Request exposing (Request)
+import Route exposing (Route)
 import Shared
 import Utils.Route
 import View exposing (View)
 
 
-page : Shared.Model -> Request -> Page.With Model Msg
+page : Shared.Model -> Route () -> Page Model Msg
 page shared req =
     Page.protected.element <|
         \user ->
@@ -58,7 +58,7 @@ type Msg
     | GotArticle (Data Article)
 
 
-update : Request -> Msg -> Model -> ( Model, Cmd Msg )
+update : Route () -> Msg -> Model -> ( Model, Cmd Msg )
 update req msg model =
     case msg of
         Updated field value ->
