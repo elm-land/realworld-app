@@ -1,9 +1,10 @@
 module Auth exposing (User, onPageLoad, viewLoadingPage)
 
 import Api.User
+import Auth.Action
 import Dict exposing (Dict)
-import ElmSpa.Page as ElmSpa
 import Route exposing (Route)
+import Route.Path
 import Shared
 import View exposing (View)
 
