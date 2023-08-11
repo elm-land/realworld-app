@@ -4,7 +4,7 @@ port module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , saveUser, clearUser
+    , signIn, saveUser, clearUser
     )
 
 {-|
@@ -19,7 +19,7 @@ port module Effect exposing
 
 ## Custom
 
-@docs saveUser, clearUser
+@docs signIn, saveUser, clearUser
 
 -}
 
@@ -131,6 +131,11 @@ loadExternalUrl =
 
 
 -- USERS
+
+
+signIn : Api.User.User -> Effect msg
+signIn user =
+    SendSharedMsg (Shared.Msg.SignedInUser user)
 
 
 saveUser : Api.User.User -> Effect msg
