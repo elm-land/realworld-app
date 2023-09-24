@@ -1,14 +1,14 @@
 # ![RealWorld Example App](logo.png)
 
-> ### An __elm-spa__ codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.
+> ### An __Elm Land__ codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.
 
 
 ### [Demo](https://realworld.elm.land/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
 
 
-This codebase was created to demonstrate a fully fledged fullstack application built with **elm-spa** including CRUD operations, authentication, routing, pagination, and more.
+This codebase was created to demonstrate a fully fledged fullstack application built with **Elm Land** including CRUD operations, authentication, routing, pagination, and more.
 
-We've gone to great lengths to adhere to the **elm-spa** community styleguides & best practices.
+We've gone to great lengths to adhere to the **Elm Land** community styleguides & best practices.
 
 For more information on how to this works with other frontends/backends, head over to the [RealWorld](https://github.com/gothinkster/realworld) repo.
 
