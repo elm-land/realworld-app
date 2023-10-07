@@ -1,27 +1,27 @@
 # RealWorld Example App
 
-# TODO: Update below
+> ### A codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.
 
-> ### An __Elm Land__ codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.
+<!-- ### [Demo](https://realworld.elm.land/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld) -->
 
+This codebase was created to demonstrate using [elm-open-api](https://www.npmjs.com/package/elm-open-api) for all API operations.
 
-### [Demo](https://realworld.elm.land/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
-
-
-This codebase was created to demonstrate a fully fledged fullstack application built with **Elm Land** including CRUD operations, authentication, routing, pagination, and more.
-
-We've gone to great lengths to adhere to the **Elm Land** community styleguides & best practices.
+This codebase is forked from the [Elm Land RealWorld app](https://github.com/elm-land/realworld-app) to provide an easy to compare diff of hand writting the API vs generating it from an [OpenAPI](https://www.openapis.org/) spec.
 
 For more information on how to this works with other frontends/backends, head over to the [RealWorld](https://github.com/gothinkster/realworld) repo.
 
-
 # How it works
 
-> This application was built with [Elm Land](https://elm.land), A production-ready framework for building Elm applications.
+> The file `Api.elm` is generated from the OpenAPI spec `./openapi.yml` using [elm-open-api](https://www.npmjs.com/package/elm-open-api), then used within the rest of the application.
+
+This application was built with [Elm Land](https://elm.land), a production-ready framework for building Elm applications.
 
 Check out the [the source code](./src) to get a feel for the project structure!
 
 ```
+openapi.yml
+generate/
+  Api.elm
 src/
   Api/...
   Components/...
@@ -34,6 +34,7 @@ src/
 # Getting started
 
 ```
-npm install -g elm-land@latest
-elm-land server
+npm install
+npm run gen-api
+npm run dev
 ```
