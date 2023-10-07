@@ -1,7 +1,7 @@
 module Components.UserForm exposing (Field, view)
 
+import Api
 import Api.Data exposing (Data)
-import Api.User exposing (User)
 import Components.ErrorList
 import Html exposing (..)
 import Html.Attributes exposing (class, href, placeholder, type_, value)
@@ -18,7 +18,7 @@ type alias Field msg =
 
 
 view :
-    { user : Data User
+    { user : Data Api.User
     , label : String
     , onFormSubmit : msg
     , alternateLink : { label : String, route : Path }

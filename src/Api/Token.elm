@@ -17,17 +17,17 @@ import Json.Decode as Json
 import Json.Encode as Encode
 
 
-type Token
-    = Token String
+type alias Token =
+    String
 
 
 decoder : Json.Decoder Token
 decoder =
-    Json.map Token Json.string
+    Json.string
 
 
 encode : Token -> Json.Value
-encode (Token token) =
+encode token =
     Encode.string token
 
 
@@ -96,7 +96,7 @@ request method body maybeToken options =
         { method = method
         , headers =
             case maybeToken of
-                Just (Token token) ->
+                Just token ->
                     [ Http.header "Authorization" ("Token " ++ token) ]
 
                 Nothing ->

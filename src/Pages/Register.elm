@@ -1,11 +1,12 @@
 module Pages.Register exposing (Model, Msg, page)
 
+import Api
 import Api.Data exposing (Data)
-import Api.User exposing (User)
 import Components.UserForm
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Html exposing (..)
+import Http
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
@@ -30,7 +31,7 @@ page shared req =
 
 
 type alias Model =
-    { user : Data User
+    { user : Data Api.User
     , username : String
     , email : String
     , password : String
@@ -61,7 +62,7 @@ init shared _ =
 type Msg
     = Updated Field String
     | AttemptedSignUp
-    | GotUser (Data User)
+    | GotUser (Result Http.Error Api.UserResponse)
 
 
 type Field
@@ -90,18 +91,27 @@ update req msg model =
 
         AttemptedSignUp ->
             ( model
-            , Api.User.registration
-                { user =
-                    { username = model.username
-                    , email = model.email
-                    , password = model.password
+            , Api.createUser
+                { body =
+                    { user =
+                        { username = model.username
+                        , email = model.email
+                        , password = model.password
+                        }
                     }
-                , onResponse = GotUser
+                , toMsg = GotUser
                 }
                 |> Effect.sendCmd
             )
 
-        GotUser user ->
+        GotUser response ->
+            let
+                user =
+                    response
+                        |> Result.mapError (\_ -> [ "Failed to register" ])
+                        |> Result.map .user
+                        |> Api.Data.fromResult
+            in
             case Api.Data.toMaybe user of
                 Just user_ ->
                     ( { model | user = user }

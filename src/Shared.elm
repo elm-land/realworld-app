@@ -8,7 +8,7 @@ module Shared exposing
     , update
     )
 
-import Api.User exposing (User)
+import Api
 import Components.Footer
 import Components.Navbar
 import Effect exposing (Effect)
@@ -26,14 +26,14 @@ import View exposing (View)
 
 
 type alias Flags =
-    { user : Maybe User
+    { user : Maybe Api.User
     }
 
 
 decoder : Json.Decode.Decoder Flags
 decoder =
     Json.Decode.map Flags
-        (Json.Decode.maybe (Json.Decode.field "user" Api.User.decoder))
+        (Json.Decode.maybe (Json.Decode.field "user" Api.decodeUser))
 
 
 type alias Model =

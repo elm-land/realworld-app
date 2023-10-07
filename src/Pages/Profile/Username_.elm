@@ -1,11 +1,11 @@
 module Pages.Profile.Username_ exposing (Model, Msg, page)
 
+import Api
 import Api.Article exposing (Article)
 import Api.Article.Filters as Filters
 import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
 import Api.Token exposing (Token)
-import Api.User exposing (User)
 import Components.ArticleList
 import Components.IconButton as IconButton
 import Components.NotFound
@@ -106,11 +106,11 @@ type Msg
     = GotProfile (Data Profile)
     | GotArticles (Data Api.Article.Listing)
     | Clicked Tab
-    | ClickedFavorite User Article
-    | ClickedUnfavorite User Article
+    | ClickedFavorite Api.User Article
+    | ClickedUnfavorite Api.User Article
     | UpdatedArticle (Data Article)
-    | ClickedFollow User Profile
-    | ClickedUnfollow User Profile
+    | ClickedFollow Api.User Profile
+    | ClickedUnfollow Api.User Profile
     | ClickedPage Int
 
 

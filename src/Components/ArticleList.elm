@@ -1,8 +1,8 @@
 module Components.ArticleList exposing (view)
 
+import Api
 import Api.Article exposing (Article)
 import Api.Data exposing (Data)
-import Api.User exposing (User)
 import Components.IconButton as IconButton
 import Html exposing (..)
 import Html.Attributes exposing (alt, class, classList, href, src)
@@ -12,10 +12,10 @@ import Utils.Time
 
 
 view :
-    { user : Maybe User
+    { user : Maybe Api.User
     , articleListing : Data Api.Article.Listing
-    , onFavorite : User -> Article -> msg
-    , onUnfavorite : User -> Article -> msg
+    , onFavorite : Api.User -> Article -> msg
+    , onUnfavorite : Api.User -> Article -> msg
     , onPageClick : Int -> msg
     }
     -> List (Html msg)
@@ -53,9 +53,9 @@ view options =
 
 viewArticlePreview :
     { options
-        | user : Maybe User
-        , onFavorite : User -> Article -> msg
-        , onUnfavorite : User -> Article -> msg
+        | user : Maybe Api.User
+        , onFavorite : Api.User -> Article -> msg
+        , onUnfavorite : Api.User -> Article -> msg
     }
     -> Article
     -> Html msg

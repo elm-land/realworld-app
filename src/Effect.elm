@@ -25,7 +25,7 @@ port module Effect exposing
 
 -}
 
-import Api.User
+import Api
 import Browser.Navigation
 import Dict exposing (Dict)
 import Json.Decode as Json
@@ -57,7 +57,7 @@ type Effect msg
       -- SHARED
     | SendSharedMsg Shared.Msg.Msg
       -- USERS
-    | SaveUser Api.User.User
+    | SaveUser Api.User
     | ClearUser
 
 
@@ -135,7 +135,7 @@ loadExternalUrl =
 -- USERS
 
 
-signIn : Api.User.User -> Effect msg
+signIn : Api.User -> Effect msg
 signIn user =
     SendSharedMsg (Shared.Msg.SignedInUser user)
 
@@ -145,7 +145,7 @@ signOut =
     SendSharedMsg Shared.Msg.ClickedSignOut
 
 
-saveUser : Api.User.User -> Effect msg
+saveUser : Api.User -> Effect msg
 saveUser user =
     SaveUser user
 
@@ -232,7 +232,7 @@ toCmd options effect =
         SaveUser user ->
             outgoing
                 { tag = "saveUser"
-                , data = Api.User.encode user
+                , data = Api.encodeUser user
                 }
 
         ClearUser ->

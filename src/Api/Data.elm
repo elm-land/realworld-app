@@ -1,6 +1,7 @@
 module Api.Data exposing
     ( Data(..)
     , expectJson
+    , fromResult
     , map
     , toMaybe
     )

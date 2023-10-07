@@ -4,6 +4,7 @@ node_modules
 public/dist
 .elm-spa
 .elm-land
+generated
 
 # MacOS weird stuff
 .DS_Store

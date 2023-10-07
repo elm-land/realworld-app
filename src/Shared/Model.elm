@@ -1,8 +1,8 @@
 module Shared.Model exposing (Model)
 
-import Api.User exposing (User)
+import Api
 
 
 type alias Model =
-    { user : Maybe User
+    { user : Maybe Api.User
     }

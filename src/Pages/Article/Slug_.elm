@@ -1,10 +1,10 @@
 module Pages.Article.Slug_ exposing (Model, Msg, page)
 
+import Api
 import Api.Article exposing (Article)
 import Api.Article.Comment exposing (Comment)
 import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
-import Api.User exposing (User)
 import Components.IconButton as IconButton
 import Dict exposing (Dict)
 import Effect exposing (Effect)
@@ -73,17 +73,17 @@ init shared { params } _ =
 
 type Msg
     = GotArticle (Data Article)
-    | ClickedFavorite User Article
-    | ClickedUnfavorite User Article
-    | ClickedDeleteArticle User Article
+    | ClickedFavorite Api.User Article
+    | ClickedUnfavorite Api.User Article
+    | ClickedDeleteArticle Api.User Article
     | DeletedArticle (Data Article)
     | GotAuthor (Data Profile)
-    | ClickedFollow User Profile
-    | ClickedUnfollow User Profile
+    | ClickedFollow Api.User Profile
+    | ClickedUnfollow Api.User Profile
     | GotComments (Data (List Comment))
-    | ClickedDeleteComment User Article Comment
+    | ClickedDeleteComment Api.User Article Comment
     | DeletedComment (Data Int)
-    | SubmittedCommentForm User Article
+    | SubmittedCommentForm Api.User Article
     | CreatedComment (Data Comment)
     | UpdatedCommentText String
 
@@ -301,7 +301,7 @@ viewArticleMeta shared model article =
             ]
 
 
-viewControls : Article -> User -> List (Html Msg)
+viewControls : Article -> Api.User -> List (Html Msg)
 viewControls article user =
     if article.author.username == user.username then
         [ a
@@ -374,7 +374,7 @@ viewCommentSection shared model article =
         ]
 
 
-viewCommentForm : Model -> User -> Article -> Html Msg
+viewCommentForm : Model -> Api.User -> Article -> Html Msg
 viewCommentForm model user article =
     form [ class "card comment-form", Events.onSubmit (SubmittedCommentForm user article) ]
         [ div [ class "card-block" ]
@@ -394,7 +394,7 @@ viewCommentForm model user article =
         ]
 
 
-viewComment : Maybe User -> Article -> Comment -> Html Msg
+viewComment : Maybe Api.User -> Article -> Comment -> Html Msg
 viewComment currentUser article comment =
     let
         viewCommentActions =

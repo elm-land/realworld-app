@@ -1,8 +1,8 @@
 module Pages.Editor exposing (Model, Msg, page)
 
+import Api
 import Api.Article exposing (Article)
 import Api.Data exposing (Data)
-import Api.User exposing (User)
 import Auth
 import Components.Editor exposing (Field, Form)
 import Dict exposing (Dict)
@@ -56,7 +56,7 @@ init shared _ =
 
 
 type Msg
-    = SubmittedForm User
+    = SubmittedForm Api.User
     | Updated Field String
     | GotArticle (Data Article)
 
@@ -117,7 +117,7 @@ subscriptions _ =
 -- VIEW
 
 
-view : User -> Model -> View Msg
+view : Api.User -> Model -> View Msg
 view user model =
     { title = "New Article"
     , body =

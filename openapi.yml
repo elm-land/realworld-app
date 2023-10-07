@@ -17,7 +17,7 @@ tags:
   - name: Tags
   - name: User and Authentication
 servers:
-  - url: https://api.realworld.io/api
+  - url: https://conduit.productionready.io/api
 paths:
   /users/login:
     post:

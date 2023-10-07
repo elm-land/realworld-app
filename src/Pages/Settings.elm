@@ -1,13 +1,14 @@
 module Pages.Settings exposing (Model, Msg, page)
 
+import Api
 import Api.Data exposing (Data)
-import Api.User exposing (User)
 import Auth
 import Components.ErrorList
 import Effect exposing (Effect)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Events as Events
+import Http
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
@@ -74,8 +75,8 @@ init shared _ =
 
 type Msg
     = Updated Field String
-    | SubmittedForm User
-    | GotUser (Data User)
+    | SubmittedForm Api.User
+    | GotUser (Result Http.Error Api.UserResponse)
 
 
 type Field
@@ -107,28 +108,45 @@ update msg model =
         SubmittedForm user ->
             ( { model | message = Nothing, errors = [] }
             , Effect.sendCmd <|
-                Api.User.update
-                    { token = user.token
-                    , user = model
-                    , onResponse = GotUser
+                Api.updateCurrentUser
+                    { authorization = { token = user.token }
+                    , body =
+                        { user =
+                            { bio = Just model.bio
+                            , email = Just model.email
+                            , image = Just model.image
+                            , password = model.password
+                            , username = Just model.username
+                            }
+                        }
+                    , toMsg = GotUser
                     }
             )
 
-        GotUser (Api.Data.Success user) ->
-            ( { model | message = Just "User updated!" }
-            , Effect.batch
-                [ Effect.saveUser user
-                , Effect.signIn user
-                ]
-            )
+        GotUser response ->
+            let
+                userResponse =
+                    response
+                        |> Result.mapError (\_ -> [ "Faied to update user" ])
+                        |> Result.map .user
+                        |> Api.Data.fromResult
+            in
+            case userResponse of
+                Api.Data.Success user ->
+                    ( { model | message = Just "User updated!" }
+                    , Effect.batch
+                        [ Effect.saveUser user
+                        , Effect.signIn user
+                        ]
+                    )
 
-        GotUser (Api.Data.Failure reasons) ->
-            ( { model | errors = reasons }
-            , Effect.none
-            )
+                Api.Data.Failure reasons ->
+                    ( { model | errors = reasons }
+                    , Effect.none
+                    )
 
-        GotUser _ ->
-            ( model, Effect.none )
+                _ ->
+                    ( model, Effect.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -140,7 +158,7 @@ subscriptions _ =
 -- VIEW
 
 
-view : User -> Model -> View Msg
+view : Api.User -> Model -> View Msg
 view user model =
     { title = "Settings"
     , body =

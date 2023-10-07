@@ -1,10 +1,10 @@
 module Pages.Home_ exposing (Model, Msg, page)
 
+import Api
 import Api.Article exposing (Article)
 import Api.Article.Filters as Filters
 import Api.Article.Tag exposing (Tag)
 import Api.Data exposing (Data)
-import Api.User exposing (User)
 import Components.ArticleList
 import Effect exposing (Effect)
 import Html exposing (..)
@@ -42,7 +42,7 @@ type alias Model =
 
 
 type Tab
-    = FeedFor User
+    = FeedFor Api.User
     | Global
     | TagFilter Tag
 
@@ -120,8 +120,8 @@ type Msg
     = GotArticles (Data Api.Article.Listing)
     | GotTags (Data (List Tag))
     | SelectedTab Tab
-    | ClickedFavorite User Article
-    | ClickedUnfavorite User Article
+    | ClickedFavorite Api.User Article
+    | ClickedUnfavorite Api.User Article
     | ClickedPage Int
     | UpdatedArticle (Data Article)
 

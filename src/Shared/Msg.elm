@@ -1,8 +1,8 @@
 module Shared.Msg exposing (Msg(..))
 
-import Api.User exposing (User)
+import Api
 
 
 type Msg
     = ClickedSignOut
-    | SignedInUser User
+    | SignedInUser Api.User
