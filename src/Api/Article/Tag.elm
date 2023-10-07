@@ -11,6 +11,8 @@ type alias Tag =
 
 list : { onResponse : Data (List String) -> msg } -> Cmd msg
 list options =
+    -- TODO
+    -- Api.getTags {}
     Http.get
         { url = "https://conduit.productionready.io/api/tags"
         , expect =
