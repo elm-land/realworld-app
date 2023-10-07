@@ -3,9 +3,8 @@ module Pages.Login exposing (Model, Msg, page)
 import Api
 import Api.Data exposing (Data)
 import Components.UserForm
-import Dict exposing (Dict)
+import Dict
 import Effect exposing (Effect)
-import Html exposing (..)
 import Http
 import Layouts
 import Page exposing (Page)
@@ -69,7 +68,7 @@ type Field
 
 
 update : Route () -> Msg -> Model -> ( Model, Effect Msg )
-update req msg model =
+update _ msg model =
     case msg of
         Updated Email email ->
             ( { model | email = email }

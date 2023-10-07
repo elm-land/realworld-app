@@ -1,10 +1,10 @@
 module Pages.Article.Slug_ exposing (Model, Msg, page)
 
 import Api
-import Api.Article.Comment exposing (Comment)
+import Api.Article.Comment
 import Api.Data exposing (Data)
 import Components.IconButton as IconButton
-import Dict exposing (Dict)
+import Dict
 import Effect exposing (Effect)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, href, placeholder, src, value)
@@ -45,7 +45,7 @@ type alias Model =
 
 
 init : Shared.Model -> Route { slug : String } -> () -> ( Model, Effect Msg )
-init shared { params } _ =
+init _ { params } _ =
     ( { article = Api.Data.Loading
       , comments = Api.Data.Loading
       , commentText = ""
@@ -74,7 +74,7 @@ type Msg
     | ClickedFavorite Api.User Api.Article
     | ClickedUnfavorite Api.User Api.Article
     | ClickedDeleteArticle Api.User Api.Article
-    | DeletedArticle (Result Http.Error Api.EmptyOkResponse)
+    | DeletedArticle
     | GotAuthor (Result Http.Error Api.ProfileResponse)
     | ClickedFollow Api.User Api.Profile
     | ClickedUnfollow Api.User Api.Profile
@@ -126,12 +126,12 @@ update msg model =
             , Api.deleteArticle
                 { authorization = { token = user.token }
                 , params = { slug = article.slug }
-                , toMsg = DeletedArticle
+                , toMsg = \_ -> DeletedArticle
                 }
                 |> Effect.sendCmd
             )
 
-        DeletedArticle _ ->
+        DeletedArticle ->
             ( model
             , Effect.pushRoute
                 { path = Route.Path.Home_
@@ -300,7 +300,7 @@ viewArticle shared model article =
 
 
 viewArticleMeta : Shared.Model -> Model -> Api.Article -> Html Msg
-viewArticleMeta shared model article =
+viewArticleMeta shared _ article =
     div [ class "article-meta" ] <|
         List.concat
             [ [ a [ href ("/profile/" ++ article.author.username) ]

@@ -1,49 +1,24 @@
 module Api.Token exposing
     ( Token
-    , decoder, encode
-    , get, put, post, delete
+    , delete
     )
 
 {-|
 
 @docs Token
-@docs decoder, encode
-@docs get, put, post, delete
+@docs delete
 
 -}
 
 import Http
-import Json.Decode as Json
-import Json.Encode as Encode
 
 
 type alias Token =
     String
 
 
-decoder : Json.Decoder Token
-decoder =
-    Json.string
-
-
-encode : Token -> Json.Value
-encode token =
-    Encode.string token
-
-
 
 -- HTTP HELPERS
-
-
-get :
-    Maybe Token
-    ->
-        { url : String
-        , expect : Http.Expect msg
-        }
-    -> Cmd msg
-get =
-    request "GET" Http.emptyBody
 
 
 delete :
@@ -55,30 +30,6 @@ delete :
     -> Cmd msg
 delete =
     request "DELETE" Http.emptyBody
-
-
-post :
-    Maybe Token
-    ->
-        { url : String
-        , body : Http.Body
-        , expect : Http.Expect msg
-        }
-    -> Cmd msg
-post token options =
-    request "POST" options.body token options
-
-
-put :
-    Maybe Token
-    ->
-        { url : String
-        , body : Http.Body
-        , expect : Http.Expect msg
-        }
-    -> Cmd msg
-put token options =
-    request "PUT" options.body token options
 
 
 request :

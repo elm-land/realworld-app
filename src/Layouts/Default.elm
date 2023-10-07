@@ -16,7 +16,7 @@ type alias Props =
 
 
 layout : Props -> Shared.Model -> Route () -> Layout () Model Msg contentMsg
-layout props shared route =
+layout _ shared route =
     Layout.new
         { init = init
         , update = update
@@ -58,7 +58,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -67,7 +67,7 @@ subscriptions model =
 
 
 view : Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
-view shared route { toContentMsg, model, content } =
+view shared route { toContentMsg, content } =
     { title =
         if String.isEmpty content.title then
             "Conduit"

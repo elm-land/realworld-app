@@ -1,10 +1,12 @@
 {
   "scripts": {
     "gen-api": "elm-open-api ./openapi.yml --namespace=Api ",
-    "dev": "elm-land server"
+    "dev": "elm-land server",
+    "review": "elm-review --watch --fix"
   },
   "devDependencies": {
     "elm-land": "^0.19.4",
-    "elm-open-api": "^0.1.0-alpha.1"
+    "elm-open-api": "^0.1.0-alpha.1",
+    "elm-review": "^2.10.3"
   }
 }

@@ -1,7 +1,6 @@
-module Pages.Home_ exposing (Model, Msg, page)
+module Pages.Home_ exposing (Model, Msg, Tab, page)
 
 import Api
-import Api.Article.Filters as Filters
 import Api.Article.Tag exposing (Tag)
 import Api.Data exposing (Data)
 import Article
@@ -67,7 +66,7 @@ init shared _ =
     in
     ( model
     , Effect.batch
-        [ fetchArticlesForTab shared model
+        [ fetchArticlesForTab model
         , Api.Article.Tag.list { onResponse = GotTags }
             |> Effect.sendCmd
         ]
@@ -75,14 +74,12 @@ init shared _ =
 
 
 fetchArticlesForTab :
-    Shared.Model
-    ->
-        { model
-            | page : Int
-            , activeTab : Tab
-        }
+    { model
+        | page : Int
+        , activeTab : Tab
+    }
     -> Effect Msg
-fetchArticlesForTab shared model =
+fetchArticlesForTab model =
     case model.activeTab of
         Global ->
             Api.getArticles
@@ -142,7 +139,7 @@ type Msg
 
 
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
-update shared msg model =
+update _ msg model =
     case msg of
         GotArticles page_ response ->
             ( { model
@@ -177,7 +174,7 @@ update shared msg model =
                     }
             in
             ( newModel
-            , fetchArticlesForTab shared newModel
+            , fetchArticlesForTab newModel
             )
 
         ClickedFavorite user article ->
@@ -210,7 +207,7 @@ update shared msg model =
                     }
             in
             ( newModel
-            , fetchArticlesForTab shared newModel
+            , fetchArticlesForTab newModel
             )
 
         UpdatedArticle (Ok { article }) ->

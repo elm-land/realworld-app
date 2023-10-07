@@ -4,9 +4,8 @@ import Api
 import Api.Data exposing (Data)
 import Auth
 import Components.Editor exposing (Field, Form)
-import Dict exposing (Dict)
+import Dict
 import Effect exposing (Effect)
-import Html exposing (..)
 import Http
 import Layouts
 import Page exposing (Page)
@@ -38,7 +37,7 @@ type alias Model =
 
 
 init : Shared.Model -> () -> ( Model, Effect Msg )
-init shared _ =
+init _ _ =
     ( { form =
             { title = ""
             , description = ""
@@ -62,7 +61,7 @@ type Msg
 
 
 update : Route () -> Msg -> Model -> ( Model, Effect Msg )
-update route msg model =
+update _ msg model =
     case msg of
         Updated field value ->
             ( { model

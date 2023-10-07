@@ -1,7 +1,7 @@
 module Pages.Settings exposing (Model, Msg, page)
 
 import Api
-import Api.Data exposing (Data)
+import Api.Data
 import Auth
 import Components.ErrorList
 import Effect exposing (Effect)

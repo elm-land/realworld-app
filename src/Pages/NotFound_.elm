@@ -2,17 +2,15 @@ module Pages.NotFound_ exposing (Model, Msg, page)
 
 import Components.NotFound
 import Effect exposing (Effect)
-import Html exposing (..)
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
-import Route.Path
 import Shared
 import View exposing (View)
 
 
 page : Shared.Model -> Route () -> Page Model Msg
-page shared route =
+page _ _ =
     Page.new
         { init = init
         , update = update
@@ -42,16 +40,14 @@ init () =
 
 
 type Msg
-    = ExampleMsgReplaceMe
+    = ExampleMsgReplaceMe Never
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
-    case msg of
-        ExampleMsgReplaceMe ->
-            ( model
-            , Effect.none
-            )
+update _ model =
+    ( model
+    , Effect.none
+    )
 
 
 
@@ -59,7 +55,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -68,7 +64,7 @@ subscriptions model =
 
 
 view : Model -> View Msg
-view model =
+view _ =
     { title = "404"
     , body = [ Components.NotFound.view ]
     }

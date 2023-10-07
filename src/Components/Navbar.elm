@@ -2,7 +2,7 @@ module Components.Navbar exposing (view)
 
 import Api
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, href)
+import Html.Attributes exposing (class, classList)
 import Html.Events as Events
 import Route.Path exposing (Path)
 

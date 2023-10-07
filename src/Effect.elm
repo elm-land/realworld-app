@@ -1,8 +1,8 @@
 port module Effect exposing
     ( Effect
     , none, batch
-    , sendCmd, sendMsg
-    , pushRoute, replaceRoute, loadExternalUrl
+    , sendCmd
+    , pushRoute, replaceRoute
     , map, toCmd
     , signIn, signOut
     , saveUser, clearUser
@@ -12,8 +12,8 @@ port module Effect exposing
 
 @docs Effect
 @docs none, batch
-@docs sendCmd, sendMsg
-@docs pushRoute, replaceRoute, loadExternalUrl
+@docs sendCmd
+@docs pushRoute, replaceRoute
 
 @docs map, toCmd
 
@@ -30,7 +30,7 @@ import Browser.Navigation
 import Dict exposing (Dict)
 import Json.Decode as Json
 import Json.Encode as Encode
-import Route exposing (Route)
+import Route
 import Route.Path
 import Shared.Model
 import Shared.Msg
@@ -53,7 +53,6 @@ type Effect msg
       -- ROUTING
     | PushUrl String
     | ReplaceUrl String
-    | LoadExternalUrl String
       -- SHARED
     | SendSharedMsg Shared.Msg.Msg
       -- USERS
@@ -86,15 +85,6 @@ sendCmd =
     SendCmd
 
 
-{-| Send a message as an effect. Useful when emitting events from UI components.
--}
-sendMsg : msg -> Effect msg
-sendMsg msg =
-    Task.succeed msg
-        |> Task.perform identity
-        |> SendCmd
-
-
 
 -- ROUTING
 
@@ -122,13 +112,6 @@ replaceRoute :
     -> Effect msg
 replaceRoute route =
     ReplaceUrl (Route.toString route)
-
-
-{-| Redirect users to a new URL, somewhere external your web application.
--}
-loadExternalUrl : String -> Effect msg
-loadExternalUrl =
-    LoadExternalUrl
 
 
 
@@ -180,9 +163,6 @@ map fn effect =
         ReplaceUrl url ->
             ReplaceUrl url
 
-        LoadExternalUrl url ->
-            LoadExternalUrl url
-
         SendSharedMsg sharedMsg ->
             SendSharedMsg sharedMsg
 
@@ -221,9 +201,6 @@ toCmd options effect =
 
         ReplaceUrl url ->
             Browser.Navigation.replaceUrl options.key url
-
-        LoadExternalUrl url ->
-            Browser.Navigation.load url
 
         SendSharedMsg sharedMsg ->
             Task.succeed sharedMsg

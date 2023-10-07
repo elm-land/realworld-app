@@ -8,7 +8,7 @@ module Api.Article.Filters exposing
 {-|
 
 @docs Filters, create
-@docs withTag, byAuthor, onPage, favoritedBy
+@docs withTag, byAuthor, favoritedBy
 
 @docs toQueryString
 @docs pageQueryParameters

@@ -9,16 +9,11 @@ module Shared exposing
     )
 
 import Api
-import Components.Footer
-import Components.Navbar
 import Effect exposing (Effect)
-import Html exposing (..)
-import Html.Attributes exposing (class)
 import Json.Decode
 import Route exposing (Route)
 import Shared.Model
 import Shared.Msg
-import View exposing (View)
 
 
 

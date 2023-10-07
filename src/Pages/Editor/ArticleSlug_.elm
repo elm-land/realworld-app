@@ -4,7 +4,7 @@ import Api
 import Api.Data exposing (Data)
 import Auth
 import Components.Editor exposing (Field, Form)
-import Dict exposing (Dict)
+import Dict
 import Effect exposing (Effect)
 import Html exposing (..)
 import Http
@@ -39,7 +39,7 @@ type alias Model =
 
 
 init : Shared.Model -> Route { articleSlug : String } -> () -> ( Model, Effect Msg )
-init shared { params } _ =
+init _ { params } _ =
     ( { slug = params.articleSlug
       , form = Nothing
       , article = Api.Data.Loading
@@ -64,7 +64,7 @@ type Msg
 
 
 update : Route { articleSlug : String } -> Msg -> Model -> ( Model, Effect Msg )
-update route msg model =
+update _ msg model =
     case msg of
         LoadedInitialArticle response ->
             case response of

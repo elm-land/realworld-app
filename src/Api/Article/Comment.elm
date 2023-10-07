@@ -1,24 +1,22 @@
 module Api.Article.Comment exposing
     ( Comment
     , decoder
-    , get, create, delete
+    , delete
     )
 
 {-|
 
 @docs Comment
 @docs decoder
-@docs get, create, delete
+@docs delete
 
 -}
 
 import Api
 import Api.Data exposing (Data)
 import Api.Token exposing (Token)
-import Http
 import Iso8601
 import Json.Decode as Json
-import Json.Encode as Encode
 import Time
 
 
@@ -43,49 +41,6 @@ decoder =
 
 
 -- ENDPOINTS
-
-
-get :
-    { token : Maybe Token
-    , articleSlug : String
-    , onResponse : Data (List Comment) -> msg
-    }
-    -> Cmd msg
-get options =
-    Api.Token.get options.token
-        { url = "https://conduit.productionready.io/api/articles/" ++ options.articleSlug ++ "/comments"
-        , expect =
-            Api.Data.expectJson options.onResponse
-                (Json.field "comments" (Json.list decoder))
-        }
-
-
-create :
-    { token : Token
-    , articleSlug : String
-    , comment : { comment | body : String }
-    , onResponse : Data Comment -> msg
-    }
-    -> Cmd msg
-create options =
-    let
-        body : Json.Value
-        body =
-            Encode.object
-                [ ( "comment"
-                  , Encode.object
-                        [ ( "body", Encode.string options.comment.body )
-                        ]
-                  )
-                ]
-    in
-    Api.Token.post (Just options.token)
-        { url = "https://conduit.productionready.io/api/articles/" ++ options.articleSlug ++ "/comments"
-        , body = Http.jsonBody body
-        , expect =
-            Api.Data.expectJson options.onResponse
-                (Json.field "comment" decoder)
-        }
 
 
 delete :
