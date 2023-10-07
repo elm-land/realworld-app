@@ -1,20 +1,16 @@
 module Api.Article.Comment exposing
     ( Comment
     , decoder
-    , delete
     )
 
 {-|
 
 @docs Comment
 @docs decoder
-@docs delete
 
 -}
 
 import Api
-import Api.Data exposing (Data)
-import Api.Token exposing (Token)
 import Iso8601
 import Json.Decode as Json
 import Time
@@ -41,22 +37,3 @@ decoder =
 
 
 -- ENDPOINTS
-
-
-delete :
-    { token : Token
-    , articleSlug : String
-    , commentId : Int
-    , onResponse : Data Int -> msg
-    }
-    -> Cmd msg
-delete options =
-    Api.Token.delete (Just options.token)
-        { url =
-            "https://conduit.productionready.io/api/articles/"
-                ++ options.articleSlug
-                ++ "/comments/"
-                ++ String.fromInt options.commentId
-        , expect =
-            Api.Data.expectJson options.onResponse (Json.succeed options.commentId)
-        }

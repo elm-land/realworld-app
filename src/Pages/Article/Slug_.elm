@@ -1,7 +1,6 @@
 module Pages.Article.Slug_ exposing (Model, Msg, page)
 
 import Api
-import Api.Article.Comment
 import Api.Data exposing (Data)
 import Components.IconButton as IconButton
 import Dict
@@ -80,7 +79,7 @@ type Msg
     | ClickedUnfollow Api.User Api.Profile
     | GotComments (Result Http.Error Api.MultipleCommentsResponse)
     | ClickedDeleteComment Api.User Api.Article Api.Comment
-    | DeletedComment (Data Int)
+    | DeletedComment Int
     | SubmittedCommentForm Api.User Api.Article
     | CreatedComment (Result Http.Error Api.SingleCommentResponse)
     | UpdatedCommentText String
@@ -226,11 +225,13 @@ update msg model =
 
         ClickedDeleteComment user article comment ->
             ( model
-            , Api.Article.Comment.delete
-                { token = user.token
-                , articleSlug = article.slug
-                , commentId = comment.id
-                , onResponse = DeletedComment
+            , Api.deleteArticleComment
+                { authorization = { token = user.token }
+                , params =
+                    { slug = article.slug
+                    , id = comment.id
+                    }
+                , toMsg = \_ -> DeletedComment comment.id
                 }
                 |> Effect.sendCmd
             )
@@ -239,7 +240,7 @@ update msg model =
             let
                 removeComment : List Api.Comment -> List Api.Comment
                 removeComment =
-                    List.filter (\comment -> Api.Data.Success comment.id /= id)
+                    List.filter (\comment -> comment.id /= id)
             in
             ( { model | comments = Api.Data.map removeComment model.comments }
             , Effect.none
