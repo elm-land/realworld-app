@@ -1,10 +1,10 @@
 module Pages.Profile.Username_ exposing (Model, Msg, page)
 
 import Api
-import Api.Article exposing (Article)
 import Api.Article.Filters as Filters
 import Api.Data exposing (Data)
 import Api.Token exposing (Token)
+import Article
 import Components.ArticleList
 import Components.IconButton as IconButton
 import Components.NotFound
@@ -39,7 +39,7 @@ page shared req =
 type alias Model =
     { username : String
     , profile : Data Api.Profile
-    , listing : Data Api.Article.Listing
+    , listing : Data Article.Listing
     , selectedTab : Tab
     , page : Int
     }
@@ -74,25 +74,37 @@ init shared { params } _ =
     )
 
 
+pageLimit : Int
+pageLimit =
+    25
+
+
 fetchArticlesBy : Maybe Token -> String -> Int -> Effect Msg
 fetchArticlesBy token username page_ =
-    Api.Article.list
-        { token = token
-        , page = page_
-        , filters = Filters.create |> Filters.byAuthor username
-        , onResponse = GotArticles
+    Api.getArticles
+        { params =
+            { tag = Nothing
+            , author = Just username
+            , favorited = Nothing
+            , offset = Just ((page_ - 1) * pageLimit)
+            , limit = Just pageLimit
+            }
+        , toMsg = GotArticles page_
         }
         |> Effect.sendCmd
 
 
 fetchArticlesFavoritedBy : Maybe Token -> String -> Int -> Effect Msg
 fetchArticlesFavoritedBy token username page_ =
-    Api.Article.list
-        { token = token
-        , page = page_
-        , filters =
-            Filters.create |> Filters.favoritedBy username
-        , onResponse = GotArticles
+    Api.getArticles
+        { params =
+            { tag = Nothing
+            , author = Nothing
+            , favorited = Just username
+            , offset = Just ((page_ - 1) * pageLimit)
+            , limit = Just pageLimit
+            }
+        , toMsg = GotArticles page_
         }
         |> Effect.sendCmd
 
@@ -103,11 +115,11 @@ fetchArticlesFavoritedBy token username page_ =
 
 type Msg
     = GotProfile (Result Http.Error Api.ProfileResponse)
-    | GotArticles (Data Api.Article.Listing)
+    | GotArticles Int (Result Http.Error Api.MultipleArticlesResponse)
     | Clicked Tab
-    | ClickedFavorite Api.User Article
-    | ClickedUnfavorite Api.User Article
-    | UpdatedArticle (Data Article)
+    | ClickedFavorite Api.User Api.Article
+    | ClickedUnfavorite Api.User Api.Article
+    | UpdatedArticle (Result Http.Error Api.SingleArticleResponse)
     | ClickedFollow Api.User Api.Profile
     | ClickedUnfollow Api.User Api.Profile
     | ClickedPage Int
@@ -147,8 +159,20 @@ update shared msg model =
                 |> Effect.sendCmd
             )
 
-        GotArticles listing ->
-            ( { model | listing = listing }
+        GotArticles page_ response ->
+            ( { model
+                | listing =
+                    response
+                        |> Result.mapError (\_ -> [ "Articles error" ])
+                        |> Result.map
+                            (\{ articles, articlesCount } ->
+                                { articles = articles
+                                , page = page_
+                                , totalPages = articlesCount // pageLimit
+                                }
+                            )
+                        |> Api.Data.fromResult
+              }
             , Effect.none
             )
 
@@ -172,20 +196,20 @@ update shared msg model =
 
         ClickedFavorite user article ->
             ( model
-            , Api.Article.favorite
-                { token = user.token
-                , slug = article.slug
-                , onResponse = UpdatedArticle
+            , Api.createArticleFavorite
+                { authorization = { token = user.token }
+                , params = { slug = article.slug }
+                , toMsg = UpdatedArticle
                 }
                 |> Effect.sendCmd
             )
 
         ClickedUnfavorite user article ->
             ( model
-            , Api.Article.unfavorite
-                { token = user.token
-                , slug = article.slug
-                , onResponse = UpdatedArticle
+            , Api.deleteArticleFavorite
+                { authorization = { token = user.token }
+                , params = { slug = article.slug }
+                , toMsg = UpdatedArticle
                 }
                 |> Effect.sendCmd
             )
@@ -211,16 +235,16 @@ update shared msg model =
                 page_
             )
 
-        UpdatedArticle (Api.Data.Success article) ->
+        UpdatedArticle (Ok { article }) ->
             ( { model
                 | listing =
-                    Api.Data.map (Api.Article.updateArticle article)
+                    Api.Data.map (Article.updateListing article)
                         model.listing
               }
             , Effect.none
             )
 
-        UpdatedArticle _ ->
+        UpdatedArticle (Err _) ->
             ( model, Effect.none )
 
 
@@ -264,11 +288,12 @@ viewProfile shared profile model =
                         [ div [ class "col-xs-12 col-md-10 offset-md-1" ]
                             [ img [ class "user-img", src profile.image ] []
                             , h4 [] [ text profile.username ]
-                            , if String.isEmpty profile.bio then
-                                text ""
+                            , case profile.bio of
+                                Nothing ->
+                                    text ""
 
-                              else
-                                p [] [ text profile.bio ]
+                                Just bio ->
+                                    p [] [ text bio ]
                             , if isViewingOwnProfile then
                                 text ""
 

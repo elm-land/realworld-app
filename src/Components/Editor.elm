@@ -5,7 +5,7 @@ module Components.Editor exposing
     , view
     )
 
-import Api.Article exposing (Article)
+import Api
 import Api.Data exposing (Data)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, placeholder, type_, value)
@@ -54,7 +54,7 @@ view :
         }
     , buttonLabel : String
     , onUpdate : Field -> String -> msg
-    , article : Data Article
+    , article : Data Api.Article
     }
     -> Html msg
 view options =

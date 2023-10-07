@@ -1,13 +1,13 @@
 module Pages.Editor.ArticleSlug_ exposing (Model, Msg, page)
 
 import Api
-import Api.Article exposing (Article)
 import Api.Data exposing (Data)
 import Auth
 import Components.Editor exposing (Field, Form)
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Html exposing (..)
+import Http
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
@@ -34,7 +34,7 @@ page user shared route =
 type alias Model =
     { slug : String
     , form : Maybe Form
-    , article : Data Article
+    , article : Data Api.Article
     }
 
 
@@ -44,10 +44,9 @@ init shared { params } _ =
       , form = Nothing
       , article = Api.Data.Loading
       }
-    , Api.Article.get
-        { token = shared.user |> Maybe.map .token
-        , slug = params.articleSlug
-        , onResponse = LoadedInitialArticle
+    , Api.getArticle
+        { params = { slug = params.articleSlug }
+        , toMsg = LoadedInitialArticle
         }
         |> Effect.sendCmd
     )
@@ -60,29 +59,29 @@ init shared { params } _ =
 type Msg
     = SubmittedForm Api.User Form
     | Updated Field String
-    | UpdatedArticle (Data Article)
-    | LoadedInitialArticle (Data Article)
+    | UpdatedArticle (Result Http.Error Api.SingleArticleResponse)
+    | LoadedInitialArticle (Result Http.Error Api.SingleArticleResponse)
 
 
 update : Route { articleSlug : String } -> Msg -> Model -> ( Model, Effect Msg )
 update route msg model =
     case msg of
-        LoadedInitialArticle article ->
-            case article of
-                Api.Data.Success a ->
+        LoadedInitialArticle response ->
+            case response of
+                Ok { article } ->
                     ( { model
                         | form =
                             Just <|
-                                { title = a.title
-                                , description = a.description
-                                , body = a.body
-                                , tags = String.join ", " a.tags
+                                { title = article.title
+                                , description = article.description
+                                , body = article.body
+                                , tags = String.join ", " article.tagList
                                 }
                       }
                     , Effect.none
                     )
 
-                _ ->
+                Err _ ->
                     ( model, Effect.none )
 
         Updated field value ->
@@ -97,34 +96,38 @@ update route msg model =
 
         SubmittedForm user form ->
             ( model
-            , Api.Article.update
-                { token = user.token
-                , slug = model.slug
-                , article =
-                    { title = form.title
-                    , description = form.description
-                    , body = form.body
-                    , tags =
-                        form.tags
-                            |> String.split ","
-                            |> List.map String.trim
+            , Api.updateArticle
+                { authorization = { token = user.token }
+                , params = { slug = model.slug }
+                , body =
+                    { article =
+                        { body = Just form.body
+                        , description = Just form.description
+                        , title = Just form.title
+                        }
                     }
-                , onResponse = UpdatedArticle
+                , toMsg = UpdatedArticle
                 }
                 |> Effect.sendCmd
             )
 
-        UpdatedArticle article ->
-            ( { model | article = article }
-            , case article of
-                Api.Data.Success newArticle ->
+        UpdatedArticle response ->
+            ( { model
+                | article =
+                    response
+                        |> Result.map .article
+                        |> Result.mapError (\_ -> [ "Failed to update article" ])
+                        |> Api.Data.fromResult
+              }
+            , case response of
+                Ok { article } ->
                     Effect.pushRoute
-                        { path = Route.Path.Article_Slug_ { slug = newArticle.slug }
+                        { path = Route.Path.Article_Slug_ { slug = article.slug }
                         , query = Dict.empty
                         , hash = Nothing
                         }
 
-                _ ->
+                Err _ ->
                     Effect.none
             )
 
