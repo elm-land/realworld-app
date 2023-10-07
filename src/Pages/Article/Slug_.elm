@@ -4,13 +4,13 @@ import Api
 import Api.Article exposing (Article)
 import Api.Article.Comment exposing (Comment)
 import Api.Data exposing (Data)
-import Api.Profile exposing (Profile)
 import Components.IconButton as IconButton
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, href, placeholder, src, value)
 import Html.Events as Events
+import Http
 import Layouts
 import Markdown
 import Page exposing (Page)
@@ -77,9 +77,9 @@ type Msg
     | ClickedUnfavorite Api.User Article
     | ClickedDeleteArticle Api.User Article
     | DeletedArticle (Data Article)
-    | GotAuthor (Data Profile)
-    | ClickedFollow Api.User Profile
-    | ClickedUnfollow Api.User Profile
+    | GotAuthor (Result Http.Error Api.ProfileResponse)
+    | ClickedFollow Api.User Api.Profile
+    | ClickedUnfollow Api.User Api.Profile
     | GotComments (Data (List Comment))
     | ClickedDeleteComment Api.User Article Comment
     | DeletedComment (Data Int)
@@ -135,8 +135,15 @@ update msg model =
                 }
             )
 
-        GotAuthor profile ->
+        GotAuthor response ->
             let
+                profile : Api.Data.Data Api.Profile
+                profile =
+                    response
+                        |> Result.mapError (\_ -> [ "Failed to get author" ])
+                        |> Result.map .profile
+                        |> Api.Data.fromResult
+
                 updateAuthor : Article -> Article
                 updateAuthor article =
                     case profile of
@@ -152,20 +159,20 @@ update msg model =
 
         ClickedFollow user profile ->
             ( model
-            , Api.Profile.follow
-                { token = user.token
-                , username = profile.username
-                , onResponse = GotAuthor
+            , Api.followUserByUsername
+                { authorization = { token = user.token }
+                , params = { username = profile.username }
+                , toMsg = GotAuthor
                 }
                 |> Effect.sendCmd
             )
 
         ClickedUnfollow user profile ->
             ( model
-            , Api.Profile.unfollow
-                { token = user.token
-                , username = profile.username
-                , onResponse = GotAuthor
+            , Api.unfollowUserByUsername
+                { authorization = { token = user.token }
+                , params = { username = profile.username }
+                , toMsg = GotAuthor
                 }
                 |> Effect.sendCmd
             )

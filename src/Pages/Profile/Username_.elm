@@ -4,7 +4,6 @@ import Api
 import Api.Article exposing (Article)
 import Api.Article.Filters as Filters
 import Api.Data exposing (Data)
-import Api.Profile exposing (Profile)
 import Api.Token exposing (Token)
 import Components.ArticleList
 import Components.IconButton as IconButton
@@ -13,6 +12,7 @@ import Effect exposing (Effect)
 import Html exposing (..)
 import Html.Attributes exposing (class, classList, src)
 import Html.Events as Events
+import Http
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
@@ -38,7 +38,7 @@ page shared req =
 
 type alias Model =
     { username : String
-    , profile : Data Profile
+    , profile : Data Api.Profile
     , listing : Data Api.Article.Listing
     , selectedTab : Tab
     , page : Int
@@ -64,10 +64,9 @@ init shared { params } _ =
       , page = 1
       }
     , Effect.batch
-        [ Api.Profile.get
-            { token = token
-            , username = params.username
-            , onResponse = GotProfile
+        [ Api.getProfileByUsername
+            { params = params
+            , toMsg = GotProfile
             }
             |> Effect.sendCmd
         , fetchArticlesBy token params.username 1
@@ -103,14 +102,14 @@ fetchArticlesFavoritedBy token username page_ =
 
 
 type Msg
-    = GotProfile (Data Profile)
+    = GotProfile (Result Http.Error Api.ProfileResponse)
     | GotArticles (Data Api.Article.Listing)
     | Clicked Tab
     | ClickedFavorite Api.User Article
     | ClickedUnfavorite Api.User Article
     | UpdatedArticle (Data Article)
-    | ClickedFollow Api.User Profile
-    | ClickedUnfollow Api.User Profile
+    | ClickedFollow Api.User Api.Profile
+    | ClickedUnfollow Api.User Api.Profile
     | ClickedPage Int
 
 
@@ -118,26 +117,32 @@ update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
     case msg of
         GotProfile profile ->
-            ( { model | profile = profile }
+            ( { model
+                | profile =
+                    profile
+                        |> Result.mapError (\_ -> [ "Profile error" ])
+                        |> Result.map .profile
+                        |> Api.Data.fromResult
+              }
             , Effect.none
             )
 
         ClickedFollow user profile ->
             ( model
-            , Api.Profile.follow
-                { token = user.token
-                , username = profile.username
-                , onResponse = GotProfile
+            , Api.followUserByUsername
+                { authorization = { token = user.token }
+                , params = { username = profile.username }
+                , toMsg = GotProfile
                 }
                 |> Effect.sendCmd
             )
 
         ClickedUnfollow user profile ->
             ( model
-            , Api.Profile.unfollow
-                { token = user.token
-                , username = profile.username
-                , onResponse = GotProfile
+            , Api.unfollowUserByUsername
+                { authorization = { token = user.token }
+                , params = { username = profile.username }
+                , toMsg = GotProfile
                 }
                 |> Effect.sendCmd
             )
@@ -244,7 +249,7 @@ view shared model =
     }
 
 
-viewProfile : Shared.Model -> Profile -> Model -> Html Msg
+viewProfile : Shared.Model -> Api.Profile -> Model -> Html Msg
 viewProfile shared profile model =
     let
         isViewingOwnProfile : Bool
@@ -259,8 +264,11 @@ viewProfile shared profile model =
                         [ div [ class "col-xs-12 col-md-10 offset-md-1" ]
                             [ img [ class "user-img", src profile.image ] []
                             , h4 [] [ text profile.username ]
-                            , Utils.Maybe.view profile.bio
-                                (\bio -> p [] [ text bio ])
+                            , if String.isEmpty profile.bio then
+                                text ""
+
+                              else
+                                p [] [ text profile.bio ]
                             , if isViewingOwnProfile then
                                 text ""
 

@@ -12,8 +12,8 @@ module Api.Article.Comment exposing
 
 -}
 
+import Api
 import Api.Data exposing (Data)
-import Api.Profile exposing (Profile)
 import Api.Token exposing (Token)
 import Http
 import Iso8601
@@ -27,7 +27,7 @@ type alias Comment =
     , createdAt : Time.Posix
     , updatedAt : Time.Posix
     , body : String
-    , author : Profile
+    , author : Api.Profile
     }
 
 
@@ -38,7 +38,7 @@ decoder =
         (Json.field "createdAt" Iso8601.decoder)
         (Json.field "updatedAt" Iso8601.decoder)
         (Json.field "body" Json.string)
-        (Json.field "author" Api.Profile.decoder)
+        (Json.field "author" Api.decodeProfile)
 
 
 

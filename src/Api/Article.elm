@@ -16,9 +16,9 @@ module Api.Article exposing
 
 -}
 
+import Api
 import Api.Article.Filters as Filters exposing (Filters)
 import Api.Data exposing (Data)
-import Api.Profile exposing (Profile)
 import Api.Token exposing (Token)
 import Http
 import Iso8601
@@ -38,7 +38,7 @@ type alias Article =
     , updatedAt : Time.Posix
     , favorited : Bool
     , favoritesCount : Int
-    , author : Profile
+    , author : Api.Profile
     }
 
 
@@ -54,7 +54,7 @@ decoder =
         |> withField "updatedAt" Iso8601.decoder
         |> withField "favorited" Json.bool
         |> withField "favoritesCount" Json.int
-        |> withField "author" Api.Profile.decoder
+        |> withField "author" Api.decodeProfile
 
 
 type alias Listing =
